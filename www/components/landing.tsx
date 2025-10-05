@@ -61,7 +61,7 @@ export function Landing() {
     setImageLoaded(true);
   };
 
-  const src = "https://i.ibb.co/QFHpVfy/Screenshot-2024-06-04-at-22-33-35.png";
+  const src = "https://res.cloudinary.com/boidu/image/upload/t_banner/v1759536833/bl/banner.png";
 
   React.useEffect(() => {
     const img = new Image();
@@ -440,7 +440,7 @@ export function Landing() {
         </section>
       </main>
       <footer className="flex flex-col items-center w-full gap-2 px-4 py-6 border-t sm:flex-row shrink-0 md:px-6">
-        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2024 Better Lyrics. All rights reserved.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Better Lyrics. All rights reserved.</p>
         <nav className="flex gap-4 sm:ml-auto sm:gap-6">
           <Link
             href="https://better-lyrics-status.boidu.dev/"
