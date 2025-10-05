@@ -61,12 +61,12 @@ Better Lyrics upgrades your YouTube Music experience by providing beautiful time
 
 ## Features
 
-🎵 Displays beautiful time-synced lyrics on YouTube Music
-📦 Requires no external dependencies or configurations
-⏩ Lets you seek by clicking on any line
-🌏 Supports multiple languages
-🪶 Runs lightweight and fast
-🖥️ Includes full-screen mode
+🎵 Displays beautiful time-synced lyrics on YouTube Music\
+📦 Requires no external dependencies or configurations\
+⏩ Lets you seek by clicking on any line\
+🌏 Supports multiple languages\
+🪶 Runs lightweight and fast\
+🖥️ Includes full-screen mode\
 ✨ And much more!
 
 ## Download
