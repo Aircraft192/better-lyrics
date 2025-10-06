@@ -95,14 +95,12 @@ export async function modify() {
  */
 export function handleModifications(detail) {
   if (AppState.lyricInjectionPromise) {
-    console.log("Waiting for " + AppState.lyricInjectionPromise);
     AppState.lyricAbortController.abort("New song is being loaded");
     AppState.lyricInjectionPromise.then(() => {
       AppState.lyricInjectionPromise = null;
       this.handleModifications(detail);
     });
   } else {
-    console.log("Injecting Lyrics");
     AppState.lyricAbortController = new AbortController();
     AppState.lyricInjectionPromise = Lyrics.createLyrics(detail, AppState.lyricAbortController.signal)
       .then(() => {
