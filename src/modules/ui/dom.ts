@@ -10,7 +10,7 @@ let lyricsObserver: MutationObserver | null = null;
 /**
  * Creates or reuses the lyrics wrapper element and sets up scroll event handling.
  *
- * @returns {HTMLElement} The lyrics wrapper element
+ * @returns The lyrics wrapper element
  */
 export function createLyricsWrapper(): HTMLElement {
   const tabRenderer = document.querySelector(Constants.TAB_RENDERER_SELECTOR) as HTMLElement;
@@ -38,12 +38,12 @@ export function createLyricsWrapper(): HTMLElement {
 /**
  * Adds a footer with source attribution and action buttons to the lyrics container.
  *
- * @param {string} source - Source name for attribution
- * @param {string} sourceHref - URL for the source link
- * @param {string} song - Song title
- * @param {string} artist - Artist name
- * @param {string} album - Album name
- * @param {number} duration - Song duration in seconds
+ * @param source - Source name for attribution
+ * @param sourceHref - URL for the source link
+ * @param song - Song title
+ * @param artist - Artist name
+ * @param album - Album name
+ * @param duration - Song duration in seconds
  */
 export function addFooter(source: string, sourceHref: string, song: string, artist: string, album: string, duration: number): void {
   if (document.getElementsByClassName(Constants.FOOTER_CLASS).length !== 0) {
@@ -66,10 +66,10 @@ export function addFooter(source: string, sourceHref: string, song: string, arti
 /**
  * Creates the footer elements including source link, Discord link, and add lyrics button.
  *
- * @param {string} song - Song title
- * @param {string} artist - Artist name
- * @param {string} album - Album name
- * @param {number} duration - Song duration in seconds
+ * @param song - Song title
+ * @param artist - Artist name
+ * @param album - Album name
+ * @param duration - Song duration in seconds
  */
 export function createFooter(song: string, artist: string, album: string, duration: number): void {
   try {
@@ -224,7 +224,7 @@ export function flushLoader(showNoSyncAvailable = false): void {
 /**
  * Checks if the loader is currently active or animating.
  *
- * @returns {boolean} True if loader is active
+ * @returns True if loader is active
  */
 export function isLoaderActive(): boolean {
   try {
@@ -259,7 +259,7 @@ export function clearLyrics(): void {
  * Adds album art as a background image to the layout.
  * Sets up mutation observer to watch for art changes.
  *
- * @param {string} videoId - YouTube video ID for fallback image
+ * @param videoId - YouTube video ID for fallback image
  */
 export function addAlbumArtToLayout(videoId: string): void {
   if (!videoId) return;
@@ -293,7 +293,7 @@ export function addAlbumArtToLayout(videoId: string): void {
 /**
  * Injects album art URL as a CSS custom property.
  *
- * @param {string} src - Image source URL
+ * @param src - Image source URL
  */
 export function injectAlbumArt(src: string): void {
   const img = new Image();
@@ -322,10 +322,10 @@ export function removeAlbumArtFromLayout(): void {
 /**
  * Adds a button for users to contribute lyrics.
  *
- * @param {string} song - Song title
- * @param {string} artist - Artist name
- * @param {string} album - Album name
- * @param {number} duration - Song duration in seconds
+ * @param song - Song title
+ * @param artist - Artist name
+ * @param album - Album name
+ * @param duration - Song duration in seconds
  */
 export function addNoLyricsButton(song: string, artist: string, album: string, duration: number): void {
   const lyricsWrapper = document.getElementById(Constants.LYRICS_WRAPPER_ID);
@@ -474,7 +474,7 @@ export let cachedDurations: Map<string, number> = new Map();
  *
  * @param lyricsElement - the element to look up against
  * @param property - the css property to look up
- * @return {number} - in ms
+ * @return - in ms
  */
 export function getCSSDurationInMs(lyricsElement: HTMLElement, property: string): number {
   let duration = cachedDurations.get(property);
@@ -489,10 +489,10 @@ export function getCSSDurationInMs(lyricsElement: HTMLElement, property: string)
 /**
  * Main lyrics synchronization function that handles timing, highlighting, and scrolling.
  *
- * @param {number} currentTime - Current playback time in seconds
- * @param {number} eventCreationTime - Timestamp when the event was created
- * @param {boolean} [isPlaying=true] - Whether audio is currently playing
- * @param {boolean} [smoothScroll=true] - Whether to use smooth scrolling
+ * @param currentTime - Current playback time in seconds
+ * @param eventCreationTime - Timestamp when the event was created
+ * @param [isPlaying=true] - Whether audio is currently playing
+ * @param [smoothScroll=true] - Whether to use smooth scrolling
  */
 export function tickLyrics(currentTime: number, eventCreationTime: number, isPlaying = true, smoothScroll = true): void | boolean {
   const now = Date.now();
@@ -765,8 +765,8 @@ export function lyricsElementAdded(): void {
 /**
  * Injects song title and artist information used in fullscreen mode.
  *
- * @param {string} title - Song title
- * @param {string} artist - Artist name
+ * @param title - Song title
+ * @param artist - Artist name
  */
 export function injectSongAttributes(title: string, artist: string): void {
   const mainPanel = document.getElementById("main-panel");
@@ -795,7 +795,7 @@ export function injectSongAttributes(title: string, artist: string): void {
 /**
  * Gets or creates the resume autoscroll button element.
  *
- * @returns {HTMLElement} The resume scroll button element
+ * @returns The resume scroll button element
  */
 export function getResumeScrollElement(): HTMLElement {
   let elem = document.getElementById("autoscroll-resume-button");
@@ -823,9 +823,9 @@ export function getResumeScrollElement(): HTMLElement {
 /**
  * Returns the position and dimensions of a child element relative to its parent.
  *
- * @param {Element} parent - The parent element
- * @param {Element} child - The child element
- * @returns {DOMRect} Rectangle with relative position and dimensions
+ * @param parent - The parent element
+ * @param child - The child element
+ * @returns Rectangle with relative position and dimensions
  */
 function getRelativeBounds(parent: Element, child: Element): DOMRect {
   const parentBound = parent.getBoundingClientRect();
@@ -836,7 +836,7 @@ function getRelativeBounds(parent: Element, child: Element): DOMRect {
 /**
  * Converts CSS duration value to milliseconds.
  *
- * @returns {number} Duration in milliseconds
+ * @returns Duration in milliseconds
  */
 function toMs(cssDuration: string): number {
   if (!cssDuration) return 0;
@@ -851,7 +851,7 @@ function toMs(cssDuration: string): number {
 /**
  * Forces a reflow/repaint of the element by accessing its offsetHeight.
  *
- * @param {HTMLElement} elt - Element to reflow
+ * @param elt - Element to reflow
  */
 function reflow(elt: HTMLElement): void {
   void elt.offsetHeight;
