@@ -1,6 +1,6 @@
 {
 	"devDependencies": {
-		"@biomejs/biome": "2.0.4",
+		"@biomejs/biome": "^2.0.4",
 		"@types/chrome": "^0.1.22",
 		"@types/codemirror": "^5.60.16",
 		"@types/sortablejs": "^1.15.8",
@@ -13,7 +13,8 @@
 	"scripts": {
 		"dev": "extension dev",
 		"start": "extension start",
-		"build": "extension build"
+		"build": "extension build",
+		"lint": "npx @biomejs/biome lint --write . && npx @biomejs/biome format --write ."
 	},
 	"repository": {
 		"type": "git",

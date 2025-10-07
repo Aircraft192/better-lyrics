@@ -45,8 +45,7 @@ export function disableInertWhenFullscreen(): void {
   }
   const observer = new MutationObserver(mutations => {
     Settings.onFullScreenDisabled(
-      () => {
-      },
+      () => {},
       () =>
         mutations.forEach(mutation => {
           if (mutation.attributeName === "inert") {
@@ -93,7 +92,6 @@ export function lyricReloader(): void {
         Utils.log(Constants.LYRICS_TAB_CLICKED_LOG);
         Dom.cleanup();
         Dom.renderLoader();
-
       }
     });
 
@@ -110,80 +108,69 @@ export function lyricReloader(): void {
  * Handles video changes, lyric injection, and player state updates.
  */
 export function initializeLyrics(): void {
-  document.addEventListener(
-    "blyrics-send-player-time",
-    (event: CustomEvent<PlayerDetails>) => {
-      const detail = event.detail;
+  document.addEventListener("blyrics-send-player-time", (event: CustomEvent<PlayerDetails>) => {
+    const detail = event.detail;
 
-      const currentVideoId = detail.videoId;
-      const currentVideoDetails = detail.song + " " + detail.artist;
+    const currentVideoId = detail.videoId;
+    const currentVideoDetails = detail.song + " " + detail.artist;
 
-      if (
-        currentVideoId !== AppState.lastVideoId ||
-        currentVideoDetails !== AppState.lastVideoDetails
-      ) {
-        try {
-          if (currentVideoId === AppState.lastVideoId && AppState.areLyricsLoaded) {
-            console.log(Constants.SKIPPING_LOAD_WITH_META);
-            return; // We already loaded this video
-          }
-        } finally {
-          AppState.lastVideoId = currentVideoId;
-          AppState.lastVideoDetails = currentVideoDetails;
+    if (currentVideoId !== AppState.lastVideoId || currentVideoDetails !== AppState.lastVideoDetails) {
+      try {
+        if (currentVideoId === AppState.lastVideoId && AppState.areLyricsLoaded) {
+          console.log(Constants.SKIPPING_LOAD_WITH_META);
+          return; // We already loaded this video
         }
-
-        if (!detail.song || !detail.artist) {
-          console.log(Constants.LOADING_WITHOUT_SONG_META);
-        }
-
-        Utils.log(Constants.SONG_SWITCHED_LOG, detail.videoId);
-        AppState.areLyricsTicking = false;
-        AppState.areLyricsLoaded = false;
-
-        AppState.queueLyricInjection = true;
-        AppState.queueAlbumArtInjection = true;
-        AppState.queueSongDetailsInjection = true;
+      } finally {
+        AppState.lastVideoId = currentVideoId;
+        AppState.lastVideoDetails = currentVideoDetails;
       }
 
-      if (
-        AppState.queueSongDetailsInjection &&
-        detail.song &&
-        detail.artist &&
-        document.getElementById("main-panel")
-      ) {
-        AppState.queueSongDetailsInjection = false;
-        Dom.injectSongAttributes(detail.song, detail.artist);
+      if (!detail.song || !detail.artist) {
+        console.log(Constants.LOADING_WITHOUT_SONG_META);
       }
 
-      if (AppState.queueAlbumArtInjection === true && AppState.shouldInjectAlbumArt === true) {
-        AppState.queueAlbumArtInjection = false;
-        Dom.addAlbumArtToLayout(currentVideoId);
-      }
+      Utils.log(Constants.SONG_SWITCHED_LOG, detail.videoId);
+      AppState.areLyricsTicking = false;
+      AppState.areLyricsLoaded = false;
 
-      if (AppState.lyricInjectionFailed) {
-        const tabSelector = document.getElementsByClassName(Constants.TAB_HEADER_CLASS)[1];
-        if (tabSelector && tabSelector.getAttribute("aria-selected") !== "true") {
-          AppState.lyricInjectionFailed = false; //ignore failure b/c the tab isn't visible
-        }
-      }
-
-      if (AppState.queueLyricInjection || AppState.lyricInjectionFailed) {
-        const tabSelector = document.getElementsByClassName(Constants.TAB_HEADER_CLASS)[1] as HTMLElement;
-        if (tabSelector) {
-          AppState.queueLyricInjection = false;
-          AppState.lyricInjectionFailed = false;
-          if (tabSelector.getAttribute("aria-selected") !== "true") {
-            Settings.onAutoSwitchEnabled(() => {
-              tabSelector.click();
-              Utils.log(Constants.AUTO_SWITCH_ENABLED_LOG);
-            });
-          }
-          BetterLyrics.handleModifications(detail);
-        }
-      }
-      Dom.tickLyrics(detail.currentTime, detail.browserTime, detail.playing);
+      AppState.queueLyricInjection = true;
+      AppState.queueAlbumArtInjection = true;
+      AppState.queueSongDetailsInjection = true;
     }
-  );
+
+    if (AppState.queueSongDetailsInjection && detail.song && detail.artist && document.getElementById("main-panel")) {
+      AppState.queueSongDetailsInjection = false;
+      Dom.injectSongAttributes(detail.song, detail.artist);
+    }
+
+    if (AppState.queueAlbumArtInjection === true && AppState.shouldInjectAlbumArt === true) {
+      AppState.queueAlbumArtInjection = false;
+      Dom.addAlbumArtToLayout(currentVideoId);
+    }
+
+    if (AppState.lyricInjectionFailed) {
+      const tabSelector = document.getElementsByClassName(Constants.TAB_HEADER_CLASS)[1];
+      if (tabSelector && tabSelector.getAttribute("aria-selected") !== "true") {
+        AppState.lyricInjectionFailed = false; //ignore failure b/c the tab isn't visible
+      }
+    }
+
+    if (AppState.queueLyricInjection || AppState.lyricInjectionFailed) {
+      const tabSelector = document.getElementsByClassName(Constants.TAB_HEADER_CLASS)[1] as HTMLElement;
+      if (tabSelector) {
+        AppState.queueLyricInjection = false;
+        AppState.lyricInjectionFailed = false;
+        if (tabSelector.getAttribute("aria-selected") !== "true") {
+          Settings.onAutoSwitchEnabled(() => {
+            tabSelector.click();
+            Utils.log(Constants.AUTO_SWITCH_ENABLED_LOG);
+          });
+        }
+        BetterLyrics.handleModifications(detail);
+      }
+    }
+    Dom.tickLyrics(detail.currentTime, detail.browserTime, detail.playing);
+  });
 }
 
 /**

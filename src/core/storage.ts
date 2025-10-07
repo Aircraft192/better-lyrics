@@ -8,7 +8,10 @@ import * as Constants from "./constants";
  * @param {Object|string} key - Storage key or object with default values
  * @param {Function} callback - Callback function to handle the retrieved data
  */
-export function getStorage(key: string | { [key: string]: any }, callback: (items: { [key: string]: any }) => void): void {
+export function getStorage(
+  key: string | { [key: string]: any },
+  callback: (items: { [key: string]: any }) => void
+): void {
   chrome.storage.sync.get(key, callback);
 }
 
@@ -51,7 +54,7 @@ export async function getTransientStorage(key: string): Promise<any | null> {
 
     if (!item) return null;
 
-    const {value, expiry} = item;
+    const { value, expiry } = item;
     if (expiry && Date.now() > expiry) {
       await chrome.storage.local.remove(key);
       return null;
@@ -79,7 +82,7 @@ export async function setTransientStorage(key: string, value: any, ttl: number):
         type: "transient",
         value,
         expiry,
-      }
+      },
     });
     Utils.log(Constants.STORAGE_TRANSIENT_SET_LOG, key);
     await saveCacheInfo();
@@ -93,7 +96,7 @@ export async function setTransientStorage(key: string, value: any, ttl: number):
  *
  * @returns {Promise<{count: number, size: number}>} Cache statistics
  */
-export async function getUpdatedCacheInfo(): Promise<{count: number, size: number}> {
+export async function getUpdatedCacheInfo(): Promise<{ count: number; size: number }> {
   try {
     const result = await chrome.storage.local.get(null);
     const lyricsKeys = Object.keys(result).filter(key => key.startsWith("blyrics_"));
@@ -107,7 +110,7 @@ export async function getUpdatedCacheInfo(): Promise<{count: number, size: numbe
     };
   } catch (error) {
     Utils.log(Constants.GENERAL_ERROR_LOG, error);
-    return {count: 0, size: 0};
+    return { count: 0, size: 0 };
   }
 }
 
@@ -116,7 +119,7 @@ export async function getUpdatedCacheInfo(): Promise<{count: number, size: numbe
  */
 export async function saveCacheInfo(): Promise<void> {
   const cacheInfo = await getUpdatedCacheInfo();
-  await chrome.storage.sync.set({cacheInfo: cacheInfo});
+  await chrome.storage.sync.set({ cacheInfo: cacheInfo });
 }
 
 /**
@@ -145,7 +148,7 @@ export async function purgeExpiredKeys(): Promise<void> {
 
     Object.keys(result).forEach(key => {
       if (key.startsWith("blyrics_")) {
-        const {expiryTime} = result[key];
+        const { expiryTime } = result[key];
         if (expiryTime && now >= expiryTime) {
           keysToRemove.push(key);
         }

@@ -2,8 +2,8 @@ import * as DOM from "../ui/dom";
 import * as Constants from "../../core/constants";
 import * as Utils from "../../core/utils";
 import * as Translation from "../lyrics/translation";
-import * as Storage from "../../core/storage"
-import {AppState} from "../../index";
+import * as Storage from "../../core/storage";
+import { AppState } from "../../index";
 import * as BetterLyrics from "../../index";
 
 type EnableDisableCallback = () => void;
@@ -47,8 +47,8 @@ export function handleSettings(): void {
         styleElem = document.createElement("style");
         styleElem.id = "blyrics-disable-effects";
 
-        styleElem.textContent = await fetch(chrome.runtime.getURL("src/css/disablestylizedanimations.css")).then(
-          res => res.text()
+        styleElem.textContent = await fetch(chrome.runtime.getURL("src/css/disablestylizedanimations.css")).then(res =>
+          res.text()
         );
         document.head.appendChild(styleElem);
       }
@@ -57,15 +57,18 @@ export function handleSettings(): void {
 }
 
 export function onAutoSwitchEnabled(enableAutoSwitch: EnableDisableCallback): void {
-  Storage.getStorage({isAutoSwitchEnabled: false}, items => {
+  Storage.getStorage({ isAutoSwitchEnabled: false }, items => {
     if (items.isAutoSwitchEnabled) {
       enableAutoSwitch();
     }
   });
 }
 
-export function onFullScreenDisabled(disableFullScreen: EnableDisableCallback, enableFullScreen: EnableDisableCallback): void {
-  Storage.getStorage({isFullScreenDisabled: false}, items => {
+export function onFullScreenDisabled(
+  disableFullScreen: EnableDisableCallback,
+  enableFullScreen: EnableDisableCallback
+): void {
+  Storage.getStorage({ isFullScreenDisabled: false }, items => {
     if (items.isFullScreenDisabled) {
       disableFullScreen();
     } else {
@@ -75,7 +78,7 @@ export function onFullScreenDisabled(disableFullScreen: EnableDisableCallback, e
 }
 
 export function onAlbumArtEnabled(enableAlbumArt: EnableDisableCallback, disableAlbumArt: EnableDisableCallback): void {
-  Storage.getStorage({isAlbumArtEnabled: true}, items => {
+  Storage.getStorage({ isAlbumArtEnabled: true }, items => {
     if (items.isAlbumArtEnabled) {
       enableAlbumArt();
     } else {
@@ -84,8 +87,11 @@ export function onAlbumArtEnabled(enableAlbumArt: EnableDisableCallback, disable
   });
 }
 
-export function onStylizedAnimationsEnabled(enableAnimations: EnableDisableCallback, disableAnimations: EnableDisableCallback): void {
-  Storage.getStorage({isStylizedAnimationsEnabled: true}, items => {
+export function onStylizedAnimationsEnabled(
+  enableAnimations: EnableDisableCallback,
+  disableAnimations: EnableDisableCallback
+): void {
+  Storage.getStorage({ isStylizedAnimationsEnabled: true }, items => {
     if (items.isStylizedAnimationsEnabled) {
       enableAnimations();
     } else {
@@ -94,8 +100,11 @@ export function onStylizedAnimationsEnabled(enableAnimations: EnableDisableCallb
   });
 }
 
-export function onAutoHideCursor(enableCursorAutoHide: EnableDisableCallback, disableCursorAutoHide: EnableDisableCallback): void {
-  Storage.getStorage({isCursorAutoHideEnabled: true}, items => {
+export function onAutoHideCursor(
+  enableCursorAutoHide: EnableDisableCallback,
+  disableCursorAutoHide: EnableDisableCallback
+): void {
+  Storage.getStorage({ isCursorAutoHideEnabled: true }, items => {
     if (items.isCursorAutoHideEnabled) {
       enableCursorAutoHide();
     } else {
@@ -179,9 +188,9 @@ export function listenForPopupMessages(): void {
         Storage.clearCache();
         BetterLyrics.reloadLyrics();
 
-        sendResponse({success: true});
+        sendResponse({ success: true });
       } catch {
-        sendResponse({success: false});
+        sendResponse({ success: false });
       }
     }
   });

@@ -4,7 +4,6 @@ import * as Observer from "./observer";
 import { AppState } from "../../index";
 
 let backgroundChangeObserver: MutationObserver | null = null;
-let scrollPos = -1;
 let lyricsObserver: MutationObserver | null = null;
 
 /**
@@ -45,7 +44,14 @@ export function createLyricsWrapper(): HTMLElement {
  * @param album - Album name
  * @param duration - Song duration in seconds
  */
-export function addFooter(source: string, sourceHref: string, song: string, artist: string, album: string, duration: number): void {
+export function addFooter(
+  source: string,
+  sourceHref: string,
+  song: string,
+  artist: string,
+  album: string,
+  duration: number
+): void {
   if (document.getElementsByClassName(Constants.FOOTER_CLASS).length !== 0) {
     document.getElementsByClassName(Constants.FOOTER_CLASS)[0].remove();
   }
@@ -141,9 +147,9 @@ let loaderMayBeActive = false;
  * Renders and displays the loading spinner for lyrics fetching.
  */
 export function renderLoader(small = false): void {
-    if (!small) {
-      cleanup();
-    }
+  if (!small) {
+    cleanup();
+  }
   loaderMayBeActive = true;
   try {
     clearTimeout(AppState.loaderAnimationEndTimeout);
@@ -154,18 +160,18 @@ export function renderLoader(small = false): void {
       loaderWrapper.id = Constants.LYRICS_LOADER_ID;
     }
     let wasActive = loaderWrapper.hasAttribute("active");
-      loaderWrapper.setAttribute("active", "");
-      loaderWrapper.removeAttribute("no-sync-available");
+    loaderWrapper.setAttribute("active", "");
+    loaderWrapper.removeAttribute("no-sync-available");
 
-      if (small) {
-        loaderWrapper.setAttribute("small-loader", "");
-      } else {
-        loaderWrapper.removeAttribute("small-loader");
-      }
+    if (small) {
+      loaderWrapper.setAttribute("small-loader", "");
+    } else {
+      loaderWrapper.removeAttribute("small-loader");
+    }
 
     if (!wasActive) {
-        tabRenderer.prepend(loaderWrapper);
-        loaderWrapper.hidden = false;
+      tabRenderer.prepend(loaderWrapper);
+      loaderWrapper.hidden = false;
       loaderWrapper.style.display = "inline-block !important";
 
       loaderWrapper.scrollIntoView({
@@ -205,10 +211,10 @@ export function flushLoader(showNoSyncAvailable = false): void {
       });
 
       let timeout = 1000;
-        let transitionDelay = window.getComputedStyle(loaderWrapper).getPropertyValue("transition-delay");
-        if (transitionDelay) {
-          timeout += toMs(transitionDelay);
-        }
+      let transitionDelay = window.getComputedStyle(loaderWrapper).getPropertyValue("transition-delay");
+      if (transitionDelay) {
+        timeout += toMs(transitionDelay);
+      }
 
       AppState.loaderAnimationEndTimeout = window.setTimeout(() => {
         loaderWrapper.dataset.animatingOut = String(false);
@@ -283,7 +289,7 @@ export function addAlbumArtToLayout(videoId: string): void {
     Utils.log(Constants.ALBUM_ART_ADDED_FROM_MUTATION_LOG);
   });
 
-  observer.observe(albumArt, {attributes: true});
+  observer.observe(albumArt, { attributes: true });
   backgroundChangeObserver = observer;
 
   injectAlbumArtFn();
@@ -374,17 +380,17 @@ export async function injectHeadTags(): Promise<void> {
 
   let css = "";
   const responses = await Promise.all(
-      cssFiles.map(file =>
-        fetch(chrome.runtime.getURL(file), {
-          cache: "no-store",
-        })
-      )
-    );
+    cssFiles.map(file =>
+      fetch(chrome.runtime.getURL(file), {
+        cache: "no-store",
+      })
+    )
+  );
 
-    for (let i = 0; i < cssFiles.length; i++) {
-      css += `/* ${cssFiles[i]} */\n`;
-      css += await responses[i].text();
-    }
+  for (let i = 0; i < cssFiles.length; i++) {
+    css += `/* ${cssFiles[i]} */\n`;
+    css += await responses[i].text();
+  }
 
   const style = document.createElement("style");
   style.textContent = css;
@@ -395,7 +401,7 @@ export async function injectHeadTags(): Promise<void> {
  * Cleans up this elements and resets state when switching songs.
  */
 export function cleanup(): void {
-  scrollPos = -1;
+  animEngineState.scrollPos = -1;
 
   if (lyricsObserver) {
     lyricsObserver.disconnect();
@@ -461,7 +467,7 @@ export let animEngineState: AnimEngineState = {
   lastTime: 0,
   lastPlayState: false,
   lastEventCreationTime: 0,
-}
+};
 
 /**
  * @type {Map<string, number>}
@@ -469,7 +475,7 @@ export let animEngineState: AnimEngineState = {
 export let cachedDurations: Map<string, number> = new Map();
 
 /**
- * Gets and caches a css duration. 
+ * Gets and caches a css duration.
  * Note this function does not key its cache on the element provided --
  * it assumes that it isn't relevant to the calling code
  *
@@ -495,7 +501,12 @@ export function getCSSDurationInMs(lyricsElement: HTMLElement, property: string)
  * @param [isPlaying=true] - Whether audio is currently playing
  * @param [smoothScroll=true] - Whether to use smooth scrolling
  */
-export function tickLyrics(currentTime: number, eventCreationTime: number, isPlaying = true, smoothScroll = true): void | boolean {
+export function tickLyrics(
+  currentTime: number,
+  eventCreationTime: number,
+  isPlaying = true,
+  smoothScroll = true
+): void | boolean {
   const now = Date.now();
   if (isLoaderActive() || !AppState.areLyricsTicking || (currentTime === 0 && !isPlaying)) {
     return;
@@ -515,8 +526,11 @@ export function tickLyrics(currentTime: number, eventCreationTime: number, isPla
   console.assert(tabSelector != null);
 
   const playerState = document.getElementById("player-page")?.getAttribute("player-ui-state");
-  const isPlayerOpen = !playerState ||
-    playerState === "PLAYER_PAGE_OPEN" || playerState === "FULLSCREEN" || playerState === "MINIPLAYER_IN_PLAYER_PAGE";
+  const isPlayerOpen =
+    !playerState ||
+    playerState === "PLAYER_PAGE_OPEN" ||
+    playerState === "FULLSCREEN" ||
+    playerState === "MINIPLAYER_IN_PLAYER_PAGE";
   // Don't tick lyrics if they're not visible
   if (tabSelector.getAttribute("aria-selected") !== "true" || !isPlayerOpen) {
     return;
@@ -544,8 +558,7 @@ export function tickLyrics(currentTime: number, eventCreationTime: number, isPla
       currentTime += getCSSDurationInMs(lyricsElement, "--blyrics-timing-offset") / 1000;
     }
 
-    const lyricScrollTime =
-      currentTime + getCSSDurationInMs(lyricsElement, "--blyrics-scroll-timing-offset") / 1000;
+    const lyricScrollTime = currentTime + getCSSDurationInMs(lyricsElement, "--blyrics-scroll-timing-offset") / 1000;
 
     const lines = AppState.lyricData.lines;
 
@@ -754,12 +767,7 @@ export function lyricsElementAdded(): void {
   if (!AppState.areLyricsTicking) {
     return;
   }
-  tickLyrics(
-    animEngineState.lastTime,
-    animEngineState.lastEventCreationTime,
-    animEngineState.lastPlayState,
-    false
-  );
+  tickLyrics(animEngineState.lastTime, animEngineState.lastEventCreationTime, animEngineState.lastPlayState, false);
 }
 
 /**
@@ -818,7 +826,6 @@ export function getResumeScrollElement(): HTMLElement {
   }
   return elem as HTMLElement;
 }
-
 
 /**
  * Returns the position and dimensions of a child element relative to its parent.

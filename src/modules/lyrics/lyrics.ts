@@ -3,9 +3,7 @@
  * Manages lyrics fetching, caching, processing, and rendering.
  */
 
-
 /** @import {SegmentMap, ProviderParameters} from './providers.js' */
-
 
 import * as Utils from "../../core/utils";
 import * as Constants from "../../core/constants";
@@ -14,31 +12,26 @@ import * as DOM from "../ui/dom";
 import * as Translation from "./translation";
 import * as LyricProviders from "./providers";
 import * as RequestSniffing from "./requestSniffer";
-import * as Storage from "../../core/storage"
-import {AppState} from "../../index";
-import {PlayerDetails} from "../../index";
-import {SegmentMap} from "./requestSniffer";
-import {
-  CubeyLyricSourceResult,
-  LyricSourceResult,
-  ProviderParameters,
-  YTLyricSourceResult
-} from "./providers";
+import * as Storage from "../../core/storage";
+import { AppState } from "../../index";
+import { PlayerDetails } from "../../index";
+import { SegmentMap } from "./requestSniffer";
+import { CubeyLyricSourceResult, LyricSourceResult, ProviderParameters, YTLyricSourceResult } from "./providers";
 
 /** Current version of the lyrics cache format */
 const LYRIC_CACHE_VERSION = "1.2.0";
 
 type LyricSourceResultWithMeta = LyricSourceResult & {
-  song: string,
-  artist: string,
-  album: string,
-  duration: number,
-  videoId: string
-}
+  song: string;
+  artist: string;
+  album: string;
+  duration: number;
+  videoId: string;
+};
 
 type LyricSourceResultWithMetaAndVersion = LyricSourceResultWithMeta & {
-  version: string,
-}
+  version: string;
+};
 
 /**
  * Main function to create and inject lyrics for the current song.
@@ -46,7 +39,7 @@ type LyricSourceResultWithMetaAndVersion = LyricSourceResultWithMeta & {
  *
  * @param detail - Song and player details
  * @param signal
-   */
+ */
 export async function createLyrics(detail: PlayerDetails, signal: AbortSignal): Promise<void> {
   let song = detail.song;
   let artist = detail.artist;
@@ -86,7 +79,6 @@ export async function createLyrics(detail: PlayerDetails, signal: AbortSignal): 
 
   // We should get recalled if we were executed without a valid song/artist and aren't able to get lyrics
 
-
   let segmentMap: SegmentMap | null = null;
   let matchingSong = await RequestSniffer.getMatchingSong(videoId, 1);
   let swappedVideoId = false;
@@ -94,7 +86,7 @@ export async function createLyrics(detail: PlayerDetails, signal: AbortSignal): 
     (!matchingSong ||
       !matchingSong.counterpartVideoId ||
       matchingSong.counterpartVideoId !== AppState.lastLoadedVideoId) &&
-      AppState.lastLoadedVideoId !== videoId
+    AppState.lastLoadedVideoId !== videoId
   ) {
     DOM.renderLoader(); // Only render the loader after we've checked the cache & we're not switching between audio and video
     Translation.clearCache();
@@ -145,13 +137,11 @@ export async function createLyrics(detail: PlayerDetails, signal: AbortSignal): 
     sourceMap,
     alwaysFetchMetadata: swappedVideoId,
     signal,
-    };
+  };
 
   let ytLyricsPromise = LyricProviders.getLyrics(providerParameters, "yt-lyrics").then(lyrics => {
     if (!AppState.areLyricsLoaded && lyrics) {
-      Utils.log(
-      "[BetterLyrics] Temporarily Using YT Music Lyrics while we wait for synced lyrics to load"
-      );
+      Utils.log("[BetterLyrics] Temporarily Using YT Music Lyrics while we wait for synced lyrics to load");
 
       let lyricsWithMeta = {
         ...lyrics,
@@ -160,13 +150,16 @@ export async function createLyrics(detail: PlayerDetails, signal: AbortSignal): 
         duration: providerParameters.duration,
         videoId: providerParameters.videoId,
         album: providerParameters.album || "",
-      }
+      };
       processLyrics(lyricsWithMeta, true);
-      }
-      return lyrics;
-    });
+    }
+    return lyrics;
+  });
   try {
-    let cubyLyrics = await LyricProviders.getLyrics(providerParameters, "musixmatch-richsync") as CubeyLyricSourceResult;
+    let cubyLyrics = (await LyricProviders.getLyrics(
+      providerParameters,
+      "musixmatch-richsync"
+    )) as CubeyLyricSourceResult;
     if (cubyLyrics && cubyLyrics.album && cubyLyrics.album.length > 0 && album !== cubyLyrics.album) {
       providerParameters.album = cubyLyrics.album;
     }
@@ -180,11 +173,7 @@ export async function createLyrics(detail: PlayerDetails, signal: AbortSignal): 
       providerParameters.artist = cubyLyrics.artist;
     }
 
-    if (
-      cubyLyrics &&
-      cubyLyrics.duration &&
-      duration !== cubyLyrics.duration
-    ) {
+    if (cubyLyrics && cubyLyrics.duration && duration !== cubyLyrics.duration) {
       Utils.log("Using '" + cubyLyrics.duration + "' for duration instead of '" + duration + "'");
       providerParameters.duration = cubyLyrics.duration;
     }
@@ -201,7 +190,7 @@ export async function createLyrics(detail: PlayerDetails, signal: AbortSignal): 
       let sourceLyrics = await LyricProviders.getLyrics(providerParameters, provider);
 
       if (sourceLyrics && sourceLyrics.lyrics && sourceLyrics.lyrics.length > 0) {
-        let ytLyrics = await ytLyricsPromise as YTLyricSourceResult;
+        let ytLyrics = (await ytLyricsPromise) as YTLyricSourceResult;
 
         if (ytLyrics !== null) {
           let lyricText = "";
@@ -258,8 +247,7 @@ export async function createLyrics(detail: PlayerDetails, signal: AbortSignal): 
         let lastTimeChange = 0;
         for (let segment of segmentMap.segment) {
           if (lyric.startTimeMs >= segment.counterpartVideoStartTimeMilliseconds) {
-            lastTimeChange =
-              segment.primaryVideoStartTimeMilliseconds - segment.counterpartVideoStartTimeMilliseconds;
+            lastTimeChange = segment.primaryVideoStartTimeMilliseconds - segment.counterpartVideoStartTimeMilliseconds;
             if (lyric.startTimeMs <= segment.counterpartVideoStartTimeMilliseconds + segment.durationMilliseconds) {
               break;
             }
@@ -285,8 +273,8 @@ export async function createLyrics(detail: PlayerDetails, signal: AbortSignal): 
     album: providerParameters.album || "",
     duration: providerParameters.duration,
     videoId: providerParameters.videoId,
-    ...lyrics
-  }
+    ...lyrics,
+  };
 
   AppState.lastLoadedVideoId = detail.videoId;
   if (signal.aborted) {
@@ -305,8 +293,8 @@ function cacheAndProcessLyrics(cacheKey: string, data: LyricSourceResultWithMeta
   if (data.cacheAllowed) {
     let versionedData: LyricSourceResultWithMetaAndVersion = {
       version: LYRIC_CACHE_VERSION,
-      ...data
-    }
+      ...data,
+    };
     const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
     Storage.setTransientStorage(cacheKey, JSON.stringify(versionedData), oneWeekInMs);
   }
@@ -345,6 +333,33 @@ function processLyrics(data: LyricSourceResultWithMeta, keepLoaderVisible = fals
   injectLyrics(data, keepLoaderVisible);
 }
 
+export interface PartData {
+  time: number;
+  duration: number;
+  lyricElement: Element;
+  animationStartTimeMs: number;
+}
+
+export interface LineData {
+  lyricElement: Element;
+  time: number;
+  duration: number;
+  parts: PartData[];
+  isScrolled: boolean;
+  animationStartTimeMs: number;
+  isAnimationPlayStatePlaying: boolean;
+  accumulatedOffsetMs: number;
+  isAnimating: boolean;
+  isSelected: boolean;
+}
+
+export type SyncType = "richsync" | "synced" | "none";
+
+export interface LyricsData {
+  lines: LineData[];
+  syncType: SyncType;
+}
+
 /**
  * Injects lyrics into the DOM with timing, click handlers, and animations.
  * Creates the complete lyrics interface including synchronization support.
@@ -363,20 +378,20 @@ function injectLyrics(data: LyricSourceResultWithMeta, keepLoaderVisible = false
   lyricsWrapper.innerHTML = "";
   const lyricsContainer = document.createElement("div");
 
-    try {
-      lyricsContainer.className = Constants.LYRICS_CLASS;
-      lyricsWrapper.appendChild(lyricsContainer);
+  try {
+    lyricsContainer.className = Constants.LYRICS_CLASS;
+    lyricsWrapper.appendChild(lyricsContainer);
 
-      lyricsWrapper.removeAttribute("is-empty");
+    lyricsWrapper.removeAttribute("is-empty");
 
-      // add a line at -1s so that we scroll to it at when the song starts
-      let line = document.createElement("div");
-      line.dataset.time = "-1";
-      line.style.cssText = "--blyrics-duration: 0s; padding-top: 0 !important; padding-bottom: 0 !important;";
-      lyricsContainer.appendChild(line);
-    } catch (_err) {
-      Utils.log(Constants.LYRICS_WRAPPER_NOT_VISIBLE_LOG);
-    }
+    // add a line at -1s so that we scroll to it at when the song starts
+    let line = document.createElement("div");
+    line.dataset.time = "-1";
+    line.style.cssText = "--blyrics-duration: 0s; padding-top: 0 !important; padding-bottom: 0 !important;";
+    lyricsContainer.appendChild(line);
+  } catch (_err) {
+    Utils.log(Constants.LYRICS_WRAPPER_NOT_VISIBLE_LOG);
+  }
 
   Translation.onTranslationEnabled(items => {
     Utils.log(Constants.TRANSLATION_ENABLED_LOG, items.translationLanguage);
@@ -409,33 +424,6 @@ function injectLyrics(data: LyricSourceResultWithMeta, keepLoaderVisible = false
       resolve(data.language);
     }
   });
-  interface PartData {
-  time: number;
-  duration: number;
-  lyricElement: Element;
-  animationStartTimeMs: number;
-}
-
-interface LineData {
-  lyricElement: Element;
-  time: number;
-  duration: number;
-  parts: PartData[];
-  isScrolled: boolean;
-  animationStartTimeMs: number;
-  isAnimationPlayStatePlaying: boolean;
-  accumulatedOffsetMs: number;
-  isAnimating: boolean;
-  isSelected: boolean;
-}
-
-interface LyricsData {
-  lines: LineData[];
-  syncType: SyncType;
-}
-
-type SyncType = "richsync" | "synced" | "none";
-
 
   let lines: LineData[] = [];
   let syncType: SyncType = "synced";
@@ -461,7 +449,6 @@ type SyncType = "richsync" | "synced" | "none";
 
     let lyricElement = document.createElement("div");
     lyricElement.classList.add("blyrics--line");
-
 
     let line: LineData = {
       lyricElement: lyricElement,
@@ -549,95 +536,92 @@ type SyncType = "richsync" | "synced" | "none";
         DOM.animEngineState.scrollResumeTime = 0;
       });
     } else {
-        lyricElement.style.cursor = "unset";
-      }
+      lyricElement.style.cursor = "unset";
+    }
 
-      // Synchronously check cache and inject if found
+    // Synchronously check cache and inject if found
     const romanizedResult = Translation.getRomanizationFromCache(item.words);
-      if (romanizedResult) {
-        let romanizedLine = document.createElement("div");
-        romanizedLine.classList.add(Constants.ROMANIZED_LYRICS_CLASS);
-        romanizedLine.textContent = "\n" + romanizedResult;
-        lyricElement.appendChild(romanizedLine);
-        lyricElement.dataset.romanized = "true";
-      }
+    if (romanizedResult) {
+      let romanizedLine = document.createElement("div");
+      romanizedLine.classList.add(Constants.ROMANIZED_LYRICS_CLASS);
+      romanizedLine.textContent = "\n" + romanizedResult;
+      lyricElement.appendChild(romanizedLine);
+      lyricElement.dataset.romanized = "true";
+    }
 
     const translatedResult = Translation.getTranslationFromCache(
-        item.words,
-        Translation.getCurrentTranslationLanguage()
-      );
-      if (translatedResult) {
-        let translatedLine = document.createElement("div");
-        translatedLine.classList.add(Constants.TRANSLATED_LYRICS_CLASS);
-        translatedLine.textContent = "\n" + translatedResult.translatedText;
-        lyricElement.appendChild(translatedLine);
-        lyricElement.dataset.translated = "true";
-      }
+      item.words,
+      Translation.getCurrentTranslationLanguage()
+    );
+    if (translatedResult) {
+      let translatedLine = document.createElement("div");
+      translatedLine.classList.add(Constants.TRANSLATED_LYRICS_CLASS);
+      translatedLine.textContent = "\n" + translatedResult.translatedText;
+      lyricElement.appendChild(translatedLine);
+      lyricElement.dataset.translated = "true";
+    }
 
     langPromise.then(source_language => {
-        Translation.onRomanizationEnabled(async () => {
-          if (lyricElement.dataset.romanized === "true") return;
-          let romanizedLine = document.createElement("div");
-          romanizedLine.classList.add(Constants.ROMANIZED_LYRICS_CLASS);
+      Translation.onRomanizationEnabled(async () => {
+        if (lyricElement.dataset.romanized === "true") return;
+        let romanizedLine = document.createElement("div");
+        romanizedLine.classList.add(Constants.ROMANIZED_LYRICS_CLASS);
 
-          let isNonLatin = containsNonLatin(item.words);
-          if (Constants.romanizationLanguages.includes(source_language) || containsNonLatin(item.words)) {
-            let usableLang = source_language;
-            if (isNonLatin && !Constants.romanizationLanguages.includes(source_language)) {
-              usableLang = "auto";
-            }
-            if (item.words.trim() !== "♪" && item.words.trim() !== "") {
-              const result = await Translation.translateTextIntoRomaji(usableLang, item.words);
-              if (result) {
-                romanizedLine.textContent = result ? "\n" + result : "\n";
+        let isNonLatin = containsNonLatin(item.words);
+        if (Constants.romanizationLanguages.includes(source_language) || containsNonLatin(item.words)) {
+          let usableLang = source_language;
+          if (isNonLatin && !Constants.romanizationLanguages.includes(source_language)) {
+            usableLang = "auto";
+          }
+          if (item.words.trim() !== "♪" && item.words.trim() !== "") {
+            const result = await Translation.translateTextIntoRomaji(usableLang, item.words);
+            if (result) {
+              romanizedLine.textContent = result ? "\n" + result : "\n";
 
-                let translatedLine = Array.from(lyricElement.children).filter(part =>
-                  part.classList.contains(Constants.TRANSLATED_LYRICS_CLASS)
-                );
+              let translatedLine = Array.from(lyricElement.children).filter(part =>
+                part.classList.contains(Constants.TRANSLATED_LYRICS_CLASS)
+              );
 
-                if (translatedLine.length > 0) {
-                  lyricElement.insertBefore(romanizedLine, translatedLine[0]);
-                } else {
-                  lyricElement.appendChild(romanizedLine);
-                }
-                DOM.lyricsElementAdded();
+              if (translatedLine.length > 0) {
+                lyricElement.insertBefore(romanizedLine, translatedLine[0]);
+              } else {
+                lyricElement.appendChild(romanizedLine);
               }
+              DOM.lyricsElementAdded();
             }
           }
-        });
-        Translation.onTranslationEnabled(async items => {
-          if (
-            lyricElement.dataset.translated === "true" &&
-            (items.translationLanguage || "en") === Translation.getCurrentTranslationLanguage()
-          )
-            return;
+        }
+      });
+      Translation.onTranslationEnabled(async items => {
+        if (
+          lyricElement.dataset.translated === "true" &&
+          (items.translationLanguage || "en") === Translation.getCurrentTranslationLanguage()
+        )
+          return;
 
-          let translatedLine = document.createElement("div");
-          translatedLine.classList.add(Constants.TRANSLATED_LYRICS_CLASS);
+        let translatedLine = document.createElement("div");
+        translatedLine.classList.add(Constants.TRANSLATED_LYRICS_CLASS);
 
-          let target_language = items.translationLanguage || "en";
+        let target_language = items.translationLanguage || "en";
 
-          if (source_language !== target_language || containsNonLatin(item.words)) {
-            if (item.words.trim() !== "♪" && item.words.trim() !== "") {
-              const result = await Translation.translateText(item.words, target_language);
+        if (source_language !== target_language || containsNonLatin(item.words)) {
+          if (item.words.trim() !== "♪" && item.words.trim() !== "") {
+            const result = await Translation.translateText(item.words, target_language);
 
-              if (result) {
-                // Remove existing translated line if language changed
-                const existingTranslatedLine = lyricElement.querySelector(
-                  "." + Constants.TRANSLATED_LYRICS_CLASS
-                );
-                if (existingTranslatedLine) {
-                  existingTranslatedLine.remove();
-                }
-                translatedLine.textContent = "\n" + result.translatedText;
-                lyricElement.appendChild(translatedLine);
-                DOM.lyricsElementAdded();
+            if (result) {
+              // Remove existing translated line if language changed
+              const existingTranslatedLine = lyricElement.querySelector("." + Constants.TRANSLATED_LYRICS_CLASS);
+              if (existingTranslatedLine) {
+                existingTranslatedLine.remove();
               }
+              translatedLine.textContent = "\n" + result.translatedText;
+              lyricElement.appendChild(translatedLine);
+              DOM.lyricsElementAdded();
             }
           }
-        });
-      }
-    );
+        }
+      });
+    });
 
     try {
       lines.push(line);
@@ -714,7 +698,7 @@ const stringSimilarity = (str1: string, str2: string, substringLength = 2, caseS
     }
   }
   return (match * 2) / (str1.length + str2.length - (substringLength - 1) * 2);
-}
+};
 
 const testRtl = (text: string): boolean => /[؀-ۿ]|[ｐ-￐]|[֐-׿]|[ހ-޿]/.test(text);
 

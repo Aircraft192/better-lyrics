@@ -1,19 +1,19 @@
 module.exports = {
   dev: {
-    browser: 'chrome',
+    browser: "chrome",
     polyfill: true,
   },
   browser: {
     chrome: {
-      preferences: {theme: "dark"},
+      preferences: { theme: "dark" },
       browserFlags: ["--starting-url", "https://music.youtube.com/watch?v=Emq17wn71jA&list=RDAMVMxe9j9hPn6Bc"],
-      profile: "dist/chrome-profile"
+      profile: "dist/chrome-profile",
     },
     firefox: {
-      preferences: {darkMode: true},
+      preferences: { darkMode: true },
     },
   },
   output: {
-    publicPath: 'chrome-extension://effdbpeggelllpfkjppbokhmmiinhlmg/'
-  }
+    publicPath: "chrome-extension://effdbpeggelllpfkjppbokhmmiinhlmg/",
+  },
 };

@@ -1,6 +1,4 @@
-
-
-import {getStorage} from "./storage";
+import { getStorage } from "./storage";
 
 class Logger {
   private enabled = true;
@@ -10,7 +8,7 @@ class Logger {
   }
 
   updateStatus() {
-    getStorage({isLogsEnabled: true}, (items) => {
+    getStorage({ isLogsEnabled: true }, items => {
       this.enabled = items.isLogsEnabled;
     });
   }
@@ -33,7 +31,6 @@ export const log = logger.log.bind(logger);
  * Configures the logging function based on user settings.
  */
 export const setUpLog = logger.updateStatus.bind(logger);
-
 
 /**
  * Converts time string in MM:SS format to total seconds.

@@ -72,20 +72,24 @@ document.addEventListener("DOMContentLoaded", () => {
     return cssSize > SYNC_STORAGE_LIMIT ? "local" : "sync";
   };
 
-  const saveToStorageWithFallback = async (css: string, isTheme = false, retryCount = 0): Promise<{ success: boolean, strategy?: "local" | "sync", wasRetry?: boolean, error?: any }> => {
+  const saveToStorageWithFallback = async (
+    css: string,
+    isTheme = false,
+    retryCount = 0
+  ): Promise<{ success: boolean; strategy?: "local" | "sync"; wasRetry?: boolean; error?: any }> => {
     try {
       const strategy = getStorageStrategy(css);
 
       if (strategy === "local") {
         // Use local storage for large content
-        await chrome.storage.local.set({customCSS: css});
+        await chrome.storage.local.set({ customCSS: css });
         // Clear any sync storage CSS to avoid conflicts
         await chrome.storage.sync.remove("customCSS");
         // Store a flag indicating we're using local storage
-        await chrome.storage.sync.set({cssStorageType: "local"});
+        await chrome.storage.sync.set({ cssStorageType: "local" });
       } else {
         // Use sync storage for smaller content
-        await chrome.storage.sync.set({customCSS: css, cssStorageType: "sync"});
+        await chrome.storage.sync.set({ customCSS: css, cssStorageType: "sync" });
         // Clear any local storage CSS to avoid conflicts
         await chrome.storage.local.remove("customCSS");
       }
@@ -97,24 +101,24 @@ document.addEventListener("DOMContentLoaded", () => {
         currentThemeName = null;
       }
 
-      return {success: true, strategy};
+      return { success: true, strategy };
     } catch (error: any) {
       console.error("Storage save attempt failed:", error);
 
       if (error.message?.includes("quota") && retryCount < MAX_RETRY_ATTEMPTS) {
         // Quota exceeded, try with local storage
         try {
-          await chrome.storage.local.set({customCSS: css});
+          await chrome.storage.local.set({ customCSS: css });
           await chrome.storage.sync.remove("customCSS");
-          await chrome.storage.sync.set({cssStorageType: "local"});
-          return {success: true, strategy: "local", wasRetry: true};
+          await chrome.storage.sync.set({ cssStorageType: "local" });
+          return { success: true, strategy: "local", wasRetry: true };
         } catch (localError) {
           console.error("Local storage fallback failed:", localError);
-          return {success: false, error: localError};
+          return { success: false, error: localError };
         }
       }
 
-      return {success: false, error};
+      return { success: false, error };
     }
   };
 
@@ -185,7 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
     saveTimeout = window.setTimeout(saveToStorage, SAVE_DEBOUNCE_DELAY);
   }
 
-  editor.on("change", (_: any, changeObj: { origin: string; }) => {
+  editor.on("change", (_: any, changeObj: { origin: string }) => {
     console.log("cm", changeObj);
     if (VALID_CHANGE_ORIGINS.includes(changeObj.origin)) {
       isUserTyping = true;
@@ -235,12 +239,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  editor.on("keydown", (cm: { state: { completionActive: any; }; showHint: (arg0: { completeSingle: boolean; }) => void; }, event: { key: string; }) => {
-    const isInvalidKey = invalidKeys.includes(event.key);
-    if (!cm.state.completionActive && !isInvalidKey) {
-      cm.showHint({completeSingle: false});
+  editor.on(
+    "keydown",
+    (
+      cm: { state: { completionActive: any }; showHint: (arg0: { completeSingle: boolean }) => void },
+      event: { key: string }
+    ) => {
+      const isInvalidKey = invalidKeys.includes(event.key);
+      if (!cm.state.completionActive && !isInvalidKey) {
+        cm.showHint({ completeSingle: false });
+      }
     }
-  });
+  );
 
   // Load themes
   THEMES.forEach((theme, index) => {
@@ -284,7 +294,7 @@ ${selectedTheme.css}
 `;
       editor.setValue(themeContent); //fires editor.on("change");
 
-      chrome.storage.sync.set({themeName: selectedTheme.name});
+      chrome.storage.sync.set({ themeName: selectedTheme.name });
       currentThemeName = selectedTheme.name;
       isUserTyping = false;
       saveToStorage(true);
@@ -302,11 +312,11 @@ const generateDefaultFilename = (): string => {
 };
 
 const saveCSSToFile = (css: string, defaultFilename: string): void => {
-  chrome.permissions.contains({permissions: ["downloads"]}, hasPermission => {
+  chrome.permissions.contains({ permissions: ["downloads"] }, hasPermission => {
     if (hasPermission) {
       downloadFile(css, defaultFilename);
     } else {
-      chrome.permissions.request({permissions: ["downloads"]}, granted => {
+      chrome.permissions.request({ permissions: ["downloads"] }, granted => {
         if (granted) {
           downloadFile(css, defaultFilename);
         } else {
@@ -318,7 +328,7 @@ const saveCSSToFile = (css: string, defaultFilename: string): void => {
 };
 
 const downloadFile = (css: string, defaultFilename: string): void => {
-  const blob = new Blob([css], {type: "text/css"});
+  const blob = new Blob([css], { type: "text/css" });
   const url = URL.createObjectURL(blob);
 
   if (chrome.downloads) {
@@ -343,7 +353,7 @@ const downloadFile = (css: string, defaultFilename: string): void => {
 };
 
 const fallbackSaveMethod = (css: string, defaultFilename: string): void => {
-  const blob = new Blob([css], {type: "text/css"});
+  const blob = new Blob([css], { type: "text/css" });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");

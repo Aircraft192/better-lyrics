@@ -1,4 +1,3 @@
-
 /**
  * Handles the Turnstile challenge by creating an iframe and returning a Promise.
  * The visibility of the iframe can be controlled for testing purposes.
@@ -22,7 +21,6 @@ function handleTurnstile(): Promise<string> {
       if (event.source !== iframe.contentWindow) {
         return;
       }
-
 
       switch (event.data.type) {
         case "turnstile-token":
@@ -105,7 +103,7 @@ interface AudioTrackData {
 interface LyricSource {
   filled: boolean;
   lyricSourceResult: LyricSourceResult | CubeyLyricSourceResult | YTLyricSourceResult | null;
-  lyricSourceFiller: ((providerParameters: ProviderParameters) => Promise<void>);
+  lyricSourceFiller: (providerParameters: ProviderParameters) => Promise<void>;
 }
 
 export interface LyricSourceResult {
@@ -117,17 +115,16 @@ export interface LyricSourceResult {
   cacheAllowed?: boolean;
 }
 
-
 export type CubeyLyricSourceResult = LyricSourceResult & {
-  album: string,
-  artist: string,
-  duration: number,
-  song: string
+  album: string;
+  artist: string;
+  duration: number;
+  song: string;
 };
 
 export type YTLyricSourceResult = LyricSourceResult & {
-  text: string,
-}
+  text: string;
+};
 
 type LyricsArray = Lyric[];
 
@@ -164,150 +161,151 @@ import * as Utils from "../../core/utils";
 import * as Constants from "../../core/constants";
 import * as RequestSniffing from "./requestSniffer";
 
+/**
+ *
+ * @param providerParameters
+ */
+async function cubey(providerParameters: ProviderParameters): Promise<void> {
   /**
-   *
-   * @param providerParameters
+   * Gets a valid JWT, either from storage or by forcing a new Turnstile challenge.
+   * @param [forceNew=false] - If true, ignores and overwrites any stored token.
+   * @returns A promise that resolves with the JWT.
    */
-  async function cubey(providerParameters: ProviderParameters): Promise<void> {
-
-    /**
-     * Gets a valid JWT, either from storage or by forcing a new Turnstile challenge.
-     * @param [forceNew=false] - If true, ignores and overwrites any stored token.
-     * @returns A promise that resolves with the JWT.
-     */
-    async function getAuthenticationToken(forceNew = false): Promise<string|null> {
-      function isJwtExpired(token: string): boolean {
-        try {
-          const payloadBase64Url = token.split(".")[1];
-          if (!payloadBase64Url) return true;
-          const payloadBase64 = payloadBase64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const decodedPayload = atob(payloadBase64);
-          const payload = JSON.parse(decodedPayload);
-          const expirationTimeInSeconds = payload.exp;
-          if (!expirationTimeInSeconds) return true;
-          const nowInSeconds = Date.now() / 1000;
-          return nowInSeconds > expirationTimeInSeconds;
-        } catch (e) {
-          console.error("[BetterLyrics] Error decoding JWT on client-side:", e);
-          return true;
-        }
-      }
-
-      if (forceNew) {
-        Utils.log("[BetterLyrics] Forcing new token, removing any existing one.");
-        await chrome.storage.local.remove("jwtToken");
-      } else {
-        const storedData = await chrome.storage.local.get("jwtToken");
-        if (storedData.jwtToken) {
-          if (isJwtExpired(storedData.jwtToken)) {
-            Utils.log("[BetterLyrics]Local JWT has expired. Removing and requesting a new one.");
-            await chrome.storage.local.remove("jwtToken");
-          } else {
-            Utils.log("[BetterLyrics] 🔑 Using valid, non-expired JWT for bypass.");
-            return storedData.jwtToken;
-          }
-        }
-      }
-
+  async function getAuthenticationToken(forceNew = false): Promise<string | null> {
+    function isJwtExpired(token: string): boolean {
       try {
-        Utils.log("[BetterLyrics] No valid JWT found, initiating Turnstile challenge...");
-        const turnstileToken = await handleTurnstile();
-
-        const response = await fetch(CUBEY_LYRICS_API_URL + "verify-turnstile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: turnstileToken }),
-          credentials: "include",
-        });
-
-        if (!response.ok) throw new Error(`API verification failed: ${response.statusText}`);
-
-        const data = await response.json();
-        const newJwt = data.jwt;
-
-        if (!newJwt) throw new Error("No JWT returned from API after verification.");
-
-        await chrome.storage.local.set({jwtToken: newJwt});
-        Utils.log("[BetterLyrics] ✅ New JWT received and stored.");
-        return newJwt;
-      } catch (error) {
-        console.error("[BetterLyrics] Authentication process failed:", error);
-        return null;
+        const payloadBase64Url = token.split(".")[1];
+        if (!payloadBase64Url) return true;
+        const payloadBase64 = payloadBase64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const decodedPayload = atob(payloadBase64);
+        const payload = JSON.parse(decodedPayload);
+        const expirationTimeInSeconds = payload.exp;
+        if (!expirationTimeInSeconds) return true;
+        const nowInSeconds = Date.now() / 1000;
+        return nowInSeconds > expirationTimeInSeconds;
+      } catch (e) {
+        console.error("[BetterLyrics] Error decoding JWT on client-side:", e);
+        return true;
       }
     }
 
-    /**
-     * Helper to construct and send the API request.
-     * @param jwt - The JSON Web Token for authorization.
-     * @returns The fetch Response object.
-     */
-    async function makeApiCall(jwt: string): Promise<Response> {
-      const url = new URL(CUBEY_LYRICS_API_URL + "lyrics");
-      url.searchParams.append("song", providerParameters.song);
-      url.searchParams.append("artist", providerParameters.artist);
-      url.searchParams.append("duration", String(providerParameters.duration));
-      url.searchParams.append("videoId", providerParameters.videoId);
-      if (providerParameters.album) {
-        url.searchParams.append("album", providerParameters.album);
+    if (forceNew) {
+      Utils.log("[BetterLyrics] Forcing new token, removing any existing one.");
+      await chrome.storage.local.remove("jwtToken");
+    } else {
+      const storedData = await chrome.storage.local.get("jwtToken");
+      if (storedData.jwtToken) {
+        if (isJwtExpired(storedData.jwtToken)) {
+          Utils.log("[BetterLyrics]Local JWT has expired. Removing and requesting a new one.");
+          await chrome.storage.local.remove("jwtToken");
+        } else {
+          Utils.log("[BetterLyrics] 🔑 Using valid, non-expired JWT for bypass.");
+          return storedData.jwtToken;
+        }
       }
-      url.searchParams.append("alwaysFetchMetadata", String(providerParameters.alwaysFetchMetadata));
+    }
 
-      return await fetch(url.toString(), {
-        signal: AbortSignal.any([providerParameters.signal, AbortSignal.timeout(10000)]),
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
+    try {
+      Utils.log("[BetterLyrics] No valid JWT found, initiating Turnstile challenge...");
+      const turnstileToken = await handleTurnstile();
+
+      const response = await fetch(CUBEY_LYRICS_API_URL + "verify-turnstile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: turnstileToken }),
         credentials: "include",
       });
-    }
 
-    let jwt = await getAuthenticationToken();
-    if (!jwt) {
-      console.error("[BetterLyrics] Could not obtain an initial authentication token. Aborting lyrics fetch.");
-      // Mark sources as filled to prevent retries
-      ( ["musixmatch-synced", "musixmatch-richsync", "lrclib-synced", "lrclib-plain"] as LyricSourceKey[]).forEach(source => {
-        providerParameters.sourceMap[source].filled = true;
-      });
-      return;
+      if (!response.ok) throw new Error(`API verification failed: ${response.statusText}`);
+
+      const data = await response.json();
+      const newJwt = data.jwt;
+
+      if (!newJwt) throw new Error("No JWT returned from API after verification.");
+
+      await chrome.storage.local.set({ jwtToken: newJwt });
+      Utils.log("[BetterLyrics] ✅ New JWT received and stored.");
+      return newJwt;
+    } catch (error) {
+      console.error("[BetterLyrics] Authentication process failed:", error);
+      return null;
     }
+  }
+
+  /**
+   * Helper to construct and send the API request.
+   * @param jwt - The JSON Web Token for authorization.
+   * @returns The fetch Response object.
+   */
+  async function makeApiCall(jwt: string): Promise<Response> {
+    const url = new URL(CUBEY_LYRICS_API_URL + "lyrics");
+    url.searchParams.append("song", providerParameters.song);
+    url.searchParams.append("artist", providerParameters.artist);
+    url.searchParams.append("duration", String(providerParameters.duration));
+    url.searchParams.append("videoId", providerParameters.videoId);
+    if (providerParameters.album) {
+      url.searchParams.append("album", providerParameters.album);
+    }
+    url.searchParams.append("alwaysFetchMetadata", String(providerParameters.alwaysFetchMetadata));
+
+    return await fetch(url.toString(), {
+      signal: AbortSignal.any([providerParameters.signal, AbortSignal.timeout(10000)]),
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+      credentials: "include",
+    });
+  }
+
+  let jwt = await getAuthenticationToken();
+  if (!jwt) {
+    console.error("[BetterLyrics] Could not obtain an initial authentication token. Aborting lyrics fetch.");
+    // Mark sources as filled to prevent retries
+    (["musixmatch-synced", "musixmatch-richsync", "lrclib-synced", "lrclib-plain"] as LyricSourceKey[]).forEach(
+      source => {
+        providerParameters.sourceMap[source].filled = true;
+      }
+    );
+    return;
+  }
 
   let response = await makeApiCall(jwt);
 
-    // If the request is forbidden (403), it's likely a WAF block.
-    // Invalidate the current JWT and try one more time with a fresh one.
-    if (response.status === 403) {
-      console.warn(
-        "[BetterLyrics] Request was blocked (403 Forbidden), possibly by WAF. Forcing new Turnstile challenge."
-      );
-      jwt = await getAuthenticationToken(true); // `true` forces a new token
+  // If the request is forbidden (403), it's likely a WAF block.
+  // Invalidate the current JWT and try one more time with a fresh one.
+  if (response.status === 403) {
+    console.warn(
+      "[BetterLyrics] Request was blocked (403 Forbidden), possibly by WAF. Forcing new Turnstile challenge."
+    );
+    jwt = await getAuthenticationToken(true); // `true` forces a new token
 
-      if (!jwt) {
-        console.error("[BetterLyrics] Could not obtain a new token after WAF block. Aborting.");
-        (["musixmatch-synced", "musixmatch-richsync", "lrclib-synced", "lrclib-plain"] as const).forEach(source => {
-          providerParameters.sourceMap[source].filled = true;
-        });
-        return;
-      }
-
-      Utils.log("[BetterLyrics] Retrying API call with new token...");
-      response = await makeApiCall(jwt);
-    }
-
-    if (!response.ok) {
-      console.error(`[BetterLyrics] API request failed with status: ${response.status}`);
+    if (!jwt) {
+      console.error("[BetterLyrics] Could not obtain a new token after WAF block. Aborting.");
       (["musixmatch-synced", "musixmatch-richsync", "lrclib-synced", "lrclib-plain"] as const).forEach(source => {
         providerParameters.sourceMap[source].filled = true;
       });
       return;
     }
 
-    const responseData = await response.json();
+    Utils.log("[BetterLyrics] Retrying API call with new token...");
+    response = await makeApiCall(jwt);
+  }
 
-    if (responseData.album) {
-      Utils.log("[BetterLyrics] Found Album: " + responseData.album);
-    }
+  if (!response.ok) {
+    console.error(`[BetterLyrics] API request failed with status: ${response.status}`);
+    (["musixmatch-synced", "musixmatch-richsync", "lrclib-synced", "lrclib-plain"] as const).forEach(source => {
+      providerParameters.sourceMap[source].filled = true;
+    });
+    return;
+  }
 
-    if (responseData.musixmatchWordByWordLyrics) {
+  const responseData = await response.json();
+
+  if (responseData.album) {
+    Utils.log("[BetterLyrics] Found Album: " + responseData.album);
+  }
+
+  if (responseData.musixmatchWordByWordLyrics) {
     let musixmatchWordByWordLyrics = parseLRC(
       responseData.musixmatchWordByWordLyrics,
       Number(providerParameters.duration)
@@ -323,7 +321,7 @@ import * as RequestSniffing from "./requestSniffer";
       artist: responseData.artist,
       song: responseData.song,
       duration: responseData.duration,
-      cacheAllowed: true
+      cacheAllowed: true,
     };
   } else {
     providerParameters.sourceMap["musixmatch-richsync"].lyricSourceResult = {
@@ -335,15 +333,12 @@ import * as RequestSniffing from "./requestSniffer";
       artist: responseData.artist,
       song: responseData.song,
       duration: responseData.duration,
-      cacheAllowed: true
+      cacheAllowed: true,
     };
   }
 
   if (responseData.musixmatchSyncedLyrics) {
-    let musixmatchSyncedLyrics = parseLRC(
-      responseData.musixmatchSyncedLyrics,
-      Number(providerParameters.duration)
-    );
+    let musixmatchSyncedLyrics = parseLRC(responseData.musixmatchSyncedLyrics, Number(providerParameters.duration));
     providerParameters.sourceMap["musixmatch-synced"].lyricSourceResult = {
       lyrics: musixmatchSyncedLyrics,
       source: "Musixmatch",
@@ -353,10 +348,7 @@ import * as RequestSniffing from "./requestSniffer";
   }
 
   if (responseData.lrclibSyncedLyrics) {
-    let lrclibSyncedLyrics = parseLRC(
-      responseData.lrclibSyncedLyrics,
-      Number(providerParameters.duration)
-    );
+    let lrclibSyncedLyrics = parseLRC(responseData.lrclibSyncedLyrics, Number(providerParameters.duration));
     providerParameters.sourceMap["lrclib-synced"].lyricSourceResult = {
       lyrics: lrclibSyncedLyrics,
       source: "LRCLib",
@@ -377,13 +369,13 @@ import * as RequestSniffing from "./requestSniffer";
     };
   }
 
-    (["musixmatch-synced", "musixmatch-richsync", "lrclib-synced", "lrclib-plain"] as const).forEach(source => {
-      providerParameters.sourceMap[source].filled = true;
-    });
+  (["musixmatch-synced", "musixmatch-richsync", "lrclib-synced", "lrclib-plain"] as const).forEach(source => {
+    providerParameters.sourceMap[source].filled = true;
+  });
 }
 
 /**
- * 
+ *
  * @param providerParameters
  */
 async function bLyrics(providerParameters: ProviderParameters): Promise<void> {
@@ -393,7 +385,9 @@ async function bLyrics(providerParameters: ProviderParameters): Promise<void> {
   url.searchParams.append("a", providerParameters.artist);
   url.searchParams.append("d", String(providerParameters.duration));
 
-  const response = await fetch(url.toString(), {signal: AbortSignal.any([providerParameters.signal, AbortSignal.timeout(10000)])});
+  const response = await fetch(url.toString(), {
+    signal: AbortSignal.any([providerParameters.signal, AbortSignal.timeout(10000)]),
+  });
 
   if (!response.ok) {
     providerParameters.sourceMap["bLyrics"].filled = true;
@@ -459,7 +453,8 @@ async function lyricLib(providerParameters: ProviderParameters): Promise<void> {
         source: "LRCLib",
         sourceHref: "https://lrclib.net",
         musicVideoSynced: false,
-cacheAllowed: false,};
+        cacheAllowed: false,
+      };
     }
   }
 
@@ -491,7 +486,7 @@ async function ytLyrics(providerParameters: ProviderParameters): Promise<void> {
 }
 
 /**
- * 
+ *
  * @param providerParameters
  * @return
  */
@@ -535,23 +530,23 @@ async function ytCaptions(providerParameters: ProviderParameters): Promise<void>
     Utils.log("Only found auto generated lyrics for youtube captions, not using", audioTrackData);
     providerParameters.sourceMap["yt-captions"].filled = true;
     providerParameters.sourceMap["yt-captions"].lyricSourceResult = null;
-  return;
-    }
+    return;
+  }
 
   captionsUrl = new URL(captionsUrl);
   captionsUrl.searchParams.set("fmt", "json3");
 
   let captionData = await fetch(captionsUrl.toString(), {
     method: "GET",
-  signal: AbortSignal.any([providerParameters.signal, AbortSignal.timeout(10000)]),
-    }).then(response => response.json());
+    signal: AbortSignal.any([providerParameters.signal, AbortSignal.timeout(10000)]),
+  }).then(response => response.json());
 
   /**
    * @type {LyricsArray}
    */
   let lyricsArray: LyricsArray = [];
 
-  captionData.events.forEach((event: { segs: { [x: string]: { utf8: string; }; }; tStartMs: any; dDurationMs: any; }) => {
+  captionData.events.forEach((event: { segs: { [x: string]: { utf8: string } }; tStartMs: any; dDurationMs: any }) => {
     let words = "";
     for (let segsKey in event.segs) {
       words += event.segs[segsKey].utf8;
@@ -570,7 +565,7 @@ async function ytCaptions(providerParameters: ProviderParameters): Promise<void>
     lyricsArray.push({
       startTimeMs: event.tStartMs,
       words: words,
-      durationMs: event.dDurationMs
+      durationMs: event.dDurationMs,
     });
   });
 
@@ -594,7 +589,6 @@ async function ytCaptions(providerParameters: ProviderParameters): Promise<void>
     musicVideoSynced: true,
   };
 }
-
 
 let defaultPreferredProviderList = [
   "musixmatch-richsync",
@@ -638,7 +632,7 @@ export function initProviders(): void {
     }
   });
 
-  chrome.storage.sync.get({preferredProviderList: null}, function (items) {
+  chrome.storage.sync.get({ preferredProviderList: null }, function (items) {
     updateProvidersList(items.preferredProviderList);
   });
 }
@@ -648,44 +642,41 @@ const sourceKeyToFillFn = {
   "musixmatch-synced": cubey,
   "lrclib-synced": lyricLib,
   "lrclib-plain": lyricLib,
-  "bLyrics": bLyrics,
+  bLyrics: bLyrics,
   "yt-captions": ytCaptions,
-  "yt-lyrics": ytLyrics
+  "yt-lyrics": ytLyrics,
 } as const;
 
 export type LyricSourceKey = Readonly<keyof typeof sourceKeyToFillFn>;
 
 export function newSourceMap() {
-
-  function mapValues<T extends object, U>(
-      obj: T,
-      fn: (value: T[keyof T], key: keyof T) => U
-  ): { [K in keyof T]: U } {
+  function mapValues<T extends object, U>(obj: T, fn: (value: T[keyof T], key: keyof T) => U): { [K in keyof T]: U } {
     return Object.fromEntries(
-        Object.entries(obj).map(([key, value]) => [key, fn(value as T[keyof T], key as keyof T)])
+      Object.entries(obj).map(([key, value]) => [key, fn(value as T[keyof T], key as keyof T)])
     ) as { [K in keyof T]: U };
   }
 
-  return mapValues(sourceKeyToFillFn, (filler) => ({
+  return mapValues(sourceKeyToFillFn, filler => ({
     filled: false,
     lyricSourceResult: null,
     lyricSourceFiller: filler,
   }));
 }
 
-
 /**
  * @param providerParameters
  * @param source
  */
-export async function getLyrics(providerParameters: ProviderParameters, source: LyricSourceKey): Promise<LyricSourceResult | null> {
+export async function getLyrics(
+  providerParameters: ProviderParameters,
+  source: LyricSourceKey
+): Promise<LyricSourceResult | null> {
   let lyricSource = providerParameters.sourceMap[source];
   if (!lyricSource.filled) {
     await lyricSource.lyricSourceFiller(providerParameters);
   }
   return lyricSource.lyricSourceResult;
 }
-
 
 const possibleIdTags = ["ti", "ar", "al", "au", "lr", "length", "by", "offset", "re", "tool", "ve", "#"];
 /**
@@ -697,7 +688,7 @@ const possibleIdTags = ["ti", "ar", "al", "au", "lr", "length", "by", "offset", 
 function parseLRC(lrcText: string, songDuration: number): LyricsArray {
   const lines = lrcText.split("\n");
   const result: LyricsArray = [];
-  const idTags = {} as any
+  const idTags = {} as any;
 
   // Parse time in [mm:ss.xx] or <mm:ss.xx> format to milliseconds
   function parseTime(timeStr: string): number | null {

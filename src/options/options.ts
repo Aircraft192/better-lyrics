@@ -1,6 +1,6 @@
 // Function to save user options
 
-import {browser} from "../../extension.config.js";
+import { browser } from "../../extension.config.js";
 
 import Sortable from "sortablejs";
 
@@ -26,15 +26,18 @@ const saveOptions = (): void => {
     );
   }
 
-  chrome.storage.sync.get({preferredProviderList: null}, (currentOptions: { preferredProviderList: string[] | null }) => {
-    if (!arrayEqual(currentOptions.preferredProviderList, options.preferredProviderList)) {
-      clearTransientLyrics(() => {
+  chrome.storage.sync.get(
+    { preferredProviderList: null },
+    (currentOptions: { preferredProviderList: string[] | null }) => {
+      if (!arrayEqual(currentOptions.preferredProviderList, options.preferredProviderList)) {
+        clearTransientLyrics(() => {
+          saveOptionsToStorage(options);
+        });
+      } else {
         saveOptionsToStorage(options);
-      });
-    } else {
-      saveOptionsToStorage(options);
+      }
     }
-  });
+  );
 };
 
 // Function to get options from form elements
@@ -66,9 +69,9 @@ const getOptionsFromForm = (): Options => {
 // Function to save options to Chrome storage
 const saveOptionsToStorage = (options: Options): void => {
   chrome.storage.sync.set(options, () => {
-    chrome.tabs.query({url: "https://music.youtube.com/*"}, tabs => {
+    chrome.tabs.query({ url: "https://music.youtube.com/*" }, tabs => {
       tabs.forEach(tab => {
-        chrome.tabs.sendMessage(tab.id!, {action: "updateSettings", settings: options});
+        chrome.tabs.sendMessage(tab.id!, { action: "updateSettings", settings: options });
       });
     });
   });
@@ -107,7 +110,7 @@ const showAlert = (message: string): void => {
 
 // Function to clear transient lyrics
 const clearTransientLyrics = (callback?: () => void): void => {
-  chrome.tabs.query({url: "https://music.youtube.com/*"}, tabs => {
+  chrome.tabs.query({ url: "https://music.youtube.com/*" }, tabs => {
     if (tabs.length === 0) {
       updateCacheInfo(null);
       showAlert("Cache cleared successfully!");
@@ -117,7 +120,7 @@ const clearTransientLyrics = (callback?: () => void): void => {
 
     let completedTabs = 0;
     tabs.forEach(tab => {
-      chrome.tabs.sendMessage(tab.id!, {action: "clearCache"}, response => {
+      chrome.tabs.sendMessage(tab.id!, { action: "clearCache" }, response => {
         completedTabs++;
         if (completedTabs === tabs.length) {
           if (response?.success) {
@@ -154,18 +157,18 @@ const subscribeToCacheInfo = (): void => {
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === "sync" && changes.cacheInfo) {
-      updateCacheInfo({cacheInfo: changes.cacheInfo.newValue});
+      updateCacheInfo({ cacheInfo: changes.cacheInfo.newValue });
     }
   });
 };
 
 // Function to update cache info
-const updateCacheInfo = (items: { cacheInfo: { count: number, size: number } } | null): void => {
+const updateCacheInfo = (items: { cacheInfo: { count: number; size: number } } | null): void => {
   if (!items) {
     showAlert("Nothing to clear!");
     return;
   }
-  const cacheInfo = items.cacheInfo || {count: 0, size: 0};
+  const cacheInfo = items.cacheInfo || { count: 0, size: 0 };
   const cacheCount = document.getElementById("lyrics-count")!;
   const cacheSize = document.getElementById("cache-size")!;
 
@@ -210,7 +213,8 @@ const setOptionsInForm = (items: Options): void => {
   (document.getElementById("autoSwitch") as HTMLInputElement).checked = items.isAutoSwitchEnabled;
   (document.getElementById("cursorAutoHide") as HTMLInputElement).checked = items.isCursorAutoHideEnabled;
   (document.getElementById("isFullScreenDisabled") as HTMLInputElement).checked = items.isFullScreenDisabled;
-  (document.getElementById("isStylizedAnimationsEnabled") as HTMLInputElement).checked = items.isStylizedAnimationsEnabled;
+  (document.getElementById("isStylizedAnimationsEnabled") as HTMLInputElement).checked =
+    items.isStylizedAnimationsEnabled;
   (document.getElementById("translate") as HTMLInputElement).checked = items.isTranslateEnabled;
   (document.getElementById("translationLanguage") as HTMLInputElement).value = items.translationLanguage;
   (document.getElementById("isRomanizationEnabled") as HTMLInputElement).checked = items.isRomanizationEnabled;

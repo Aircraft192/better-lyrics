@@ -7,6 +7,7 @@ import * as RequestSniffing from "./modules/lyrics/requestSniffer";
 import * as Providers from "./modules/lyrics/providers";
 import * as Lyrics from "./modules/lyrics/lyrics";
 import * as Storage from "./core/storage";
+import { LyricsData } from "./modules/lyrics/lyrics";
 
 export interface PlayerDetails {
   currentTime: number;
@@ -25,7 +26,7 @@ export interface PlayerDetails {
 
 interface AppState {
   areLyricsTicking: boolean;
-  lyricData: any | null;
+  lyricData: LyricsData | null;
   areLyricsLoaded: boolean;
   lyricInjectionFailed: boolean;
   lastVideoId: string | null;
@@ -129,7 +130,6 @@ export function reloadLyrics(): void {
 export function init(): void {
   document.addEventListener("DOMContentLoaded", modify);
 }
-
 
 // Initialize the application
 init();

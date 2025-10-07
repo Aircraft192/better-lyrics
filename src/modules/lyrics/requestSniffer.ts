@@ -33,7 +33,6 @@ function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-
 /**
  *
  * @param videoId
@@ -61,7 +60,7 @@ export async function getLyrics(videoId: string, maxRetries = 250): Promise<Lyri
         if (checkCount > maxRetries) {
           clearInterval(checkInterval);
           Utils.log("Failed to sniff lyrics");
-          resolve({hasLyrics: false, lyrics: "", sourceText: ""});
+          resolve({ hasLyrics: false, lyrics: "", sourceText: "" });
         }
         checkCount += 1;
       }, 20);
@@ -120,12 +119,11 @@ export function setupRequestSniffer(): void {
 
   document.addEventListener("blyrics-send-response", (event: Event) => {
     if (!(event instanceof CustomEvent)) return;
-    let { /** @type string */ url, requestJson, responseJson} = event.detail;
+    let { /** @type string */ url, requestJson, responseJson } = event.detail;
     if (url.includes("https://music.youtube.com/youtubei/v1/next")) {
       let playlistPanelRendererContents =
-        responseJson.contents?.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer
-          ?.watchNextTabbedResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.musicQueueRenderer?.content
-          ?.playlistPanelRenderer?.contents;
+        responseJson.contents?.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer
+          ?.tabs?.[0]?.tabRenderer?.content?.musicQueueRenderer?.content?.playlistPanelRenderer?.contents;
       if (!playlistPanelRendererContents) {
         playlistPanelRendererContents =
           responseJson.onResponseReceivedEndpoints?.[0]?.queueUpdateCommand?.inlineContents?.playlistPanelRenderer
@@ -138,8 +136,8 @@ export function setupRequestSniffer(): void {
             playlistPanelRendererContent?.playlistPanelVideoWrapperRenderer?.counterpart?.[0]?.counterpartRenderer
               ?.playlistPanelVideoRenderer?.videoId;
           let primaryId =
-            playlistPanelRendererContent?.playlistPanelVideoWrapperRenderer?.primaryRenderer
-              ?.playlistPanelVideoRenderer?.videoId;
+            playlistPanelRendererContent?.playlistPanelVideoWrapperRenderer?.primaryRenderer?.playlistPanelVideoRenderer
+              ?.videoId;
 
           let segmentMap: SegmentMap =
             playlistPanelRendererContent?.playlistPanelVideoWrapperRenderer?.counterpart?.[0]?.segmentMap;
@@ -156,7 +154,7 @@ export function setupRequestSniffer(): void {
                 segment.primaryVideoStartTimeMilliseconds = Number(segment.primaryVideoStartTimeMilliseconds);
                 segment.durationMilliseconds = Number(segment.durationMilliseconds);
               }
-              reversedSegmentMap = {segment: [], reversed: true};
+              reversedSegmentMap = { segment: [], reversed: true };
               for (let segment of segmentMap.segment) {
                 reversedSegmentMap.segment.push({
                   primaryVideoStartTimeMilliseconds: segment.counterpartVideoStartTimeMilliseconds,
@@ -166,7 +164,7 @@ export function setupRequestSniffer(): void {
               }
             }
 
-            counterpartVideoIdMap.set(primaryId, {counterpartVideoId: counterpartId, segmentMap});
+            counterpartVideoIdMap.set(primaryId, { counterpartVideoId: counterpartId, segmentMap });
             counterpartVideoIdMap.set(counterpartId, {
               counterpartVideoId: primaryId,
               segmentMap: reversedSegmentMap,
@@ -174,7 +172,7 @@ export function setupRequestSniffer(): void {
           } else {
             let primaryId = playlistPanelRendererContent?.playlistPanelVideoRenderer?.videoId;
             if (primaryId) {
-              counterpartVideoIdMap.set(primaryId, {counterpartVideoId: null, segmentMap: null});
+              counterpartVideoIdMap.set(primaryId, { counterpartVideoId: null, segmentMap: null });
             }
           }
         }
@@ -207,10 +205,10 @@ export function setupRequestSniffer(): void {
       }
 
       let lyricsTab =
-        responseJson.contents?.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer
-          ?.watchNextTabbedResultsRenderer?.tabs[1]?.tabRenderer;
+        responseJson.contents?.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer
+          ?.tabs[1]?.tabRenderer;
       if (lyricsTab && lyricsTab.unselectable) {
-        videoIdToLyricsMap.set(videoId, {hasLyrics: false, lyrics: "", sourceText: ""});
+        videoIdToLyricsMap.set(videoId, { hasLyrics: false, lyrics: "", sourceText: "" });
       } else {
         let browseId = lyricsTab.endpoint?.browseEndpoint?.browseId;
         if (browseId) {
@@ -234,13 +232,13 @@ export function setupRequestSniffer(): void {
           responseJson.contents?.sectionListRenderer?.contents?.[0]?.musicDescriptionShelfRenderer?.footer?.runs?.[0]
             ?.text;
         if (lyrics && sourceText) {
-          videoIdToLyricsMap.set(videoId, {hasLyrics: true, lyrics, sourceText});
+          videoIdToLyricsMap.set(videoId, { hasLyrics: true, lyrics, sourceText });
           if (videoId === firstRequestMissedVideoId) {
             browseIdToVideoIdMap.set(browseId, videoId);
             firstRequestMissedVideoId = null;
           }
         } else {
-          videoIdToLyricsMap.set(videoId, {hasLyrics: false, lyrics: null, sourceText: null});
+          videoIdToLyricsMap.set(videoId, { hasLyrics: false, lyrics: null, sourceText: null });
         }
       }
     }
