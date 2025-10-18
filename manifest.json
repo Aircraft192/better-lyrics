@@ -40,11 +40,11 @@
     }
   ],
   "chromium:background": {
-    "service_worker": "scripts/background.js"
+    "service_worker": "src/options/background.ts"
   },
   "gecko:background": {
     "scripts": [
-      "scripts/background.js"
+      "src/options/background.ts"
     ]
   },
   "gecko:browser_specific_settings": {
@@ -61,7 +61,7 @@
         "*://music.youtube.com/*"
       ],
       "js": [
-        "src/index.js"
+        "src/index.ts"
       ],
       "run_at": "document_start",
       "world": "ISOLATED"
