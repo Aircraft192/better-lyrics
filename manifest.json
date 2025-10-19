@@ -33,6 +33,7 @@
         "css/blyrics.css",
         "css/disablestylizedanimations.css",
         "css/themesong.css",
+        "css/themes/*.css",
         "*.js.map",
         "src/options/standalone-editor.html"
       ]
