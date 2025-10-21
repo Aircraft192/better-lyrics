@@ -661,3 +661,8 @@ hr {
     font-size: 0.875rem;
     font-weight: bold;
 }
+
+.cm-editor {
+    overflow: auto;
+    min-height: 100%;
+}

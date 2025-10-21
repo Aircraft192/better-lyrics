@@ -56,21 +56,28 @@ const showAlert = (message: string): void => {
 };
 
 const openEditCSS = (): void => {
-  const editCSS = document.getElementById("css")!;
-  const options = document.getElementById("themes-content")!;
-
-  editCSS.style.display = "block";
-  options.style.display = "none";
+  const editCSS = document.getElementById("css");
+  const options = document.getElementById("options");
+  const themeContent = document.getElementById("themes-content");
+  if (editCSS && themeContent && options) {
+    editCSS.style.display = "block";
+    options.style.display = "none";
+    themeContent.style.display = "none";
+  }
 };
 
 document.getElementById("edit-css-btn")?.addEventListener("click", openEditCSS);
 
 const openOptions = (): void => {
-  const editCSS = document.getElementById("css")!;
-  const options = document.getElementById("themes-content")!;
+  const editCSS = document.getElementById("css");
+  const options = document.getElementById("options");
+  const themeContent = document.getElementById("themes-content");
 
-  editCSS.style.display = "none";
-  options.style.display = "block";
+  if (editCSS && themeContent && options) {
+    editCSS.style.display = "";
+    options.style.display = "";
+    themeContent.style.display = "";
+  }
 };
 
 document.addEventListener("keydown", function (e) {
@@ -112,8 +119,9 @@ function createEditorState(initialContents: string, options = {}) {
     syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
     oneDark,
     EditorView.updateListener.of(update => {
-      if (update.docChanged) {
-        onChange(update.view.state.doc.toString());
+      let text = update.state.doc.toString();
+      if (update.docChanged && !text.startsWith("Loading")) {
+        onChange(text);
       }
     }),
   ];
@@ -128,13 +136,15 @@ function createEditorView(state: EditorState, parent: Element) {
   return new EditorView({ state, parent });
 }
 
-const themeSelector = document.getElementById("theme-selector") as HTMLSelectElement;
+const themeSelector = document.getElementById("theme-selector") as (HTMLSelectElement | null);
 const syncIndicator = document.getElementById("sync-indicator")!;
 
 function onChange(state: string) {
   isUserTyping = true;
   if (currentThemeName !== null) {
-    themeSelector.value = "";
+    if (themeSelector) {
+      themeSelector.value = "";
+    }
     currentThemeName = null;
     chrome.storage.sync.remove("themeName");
   }
@@ -178,7 +188,9 @@ const saveToStorageWithFallback = async (
     // Always handle theme name in sync storage (small data)
     if (!isTheme && isUserTyping) {
       await chrome.storage.sync.remove("themeName");
-      themeSelector.value = "";
+      if (themeSelector) {
+        themeSelector.value = "";
+      }
       currentThemeName = null;
     }
 
@@ -305,7 +317,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load saved content with enhanced loading
   loadCustomCSS().then(css => {
-    if (css) {
+    console.log("Loaded Custom CSS:",  css)
+    if (css !== null) {
       editor.setState(createEditorState(css));
     }
   });
@@ -322,7 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
   Promise.all([chrome.storage.sync.get(["themeName"] as any), loadCustomCSS()]).then(([syncData, css]) => {
     if (syncData.themeName) {
       const themeIndex = THEMES.findIndex(theme => theme.name === syncData.themeName);
-      if (themeIndex !== -1) {
+      if (themeIndex !== -1 && themeSelector) {
         themeSelector.value = themeIndex.toString();
         currentThemeName = syncData.themeName;
       }

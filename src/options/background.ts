@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener(request => {
       });
     });
   } else if (request.action === "updateSettings") {
-    handleSettings();
+    console.log("[BetterLyrics] Update Settings Message");
   }
   return true;
 });
