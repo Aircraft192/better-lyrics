@@ -47,7 +47,7 @@ export function handleSettings(): void {
         styleElem = document.createElement("style");
         styleElem.id = "blyrics-disable-effects";
 
-        styleElem.textContent = await fetch(chrome.runtime.getURL("src/css/disablestylizedanimations.css")).then(res =>
+        styleElem.textContent = await fetch(chrome.runtime.getURL("css/disablestylizedanimations.css")).then(res =>
           res.text()
         );
         document.head.appendChild(styleElem);
