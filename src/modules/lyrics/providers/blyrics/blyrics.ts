@@ -79,17 +79,17 @@ export default async function bLyrics(providerParameters: ProviderParameters): P
             }
 
             for (let subParts of localP) {
-                if (p["#text"]) {
-                    text += p["#text"];
+                if (subParts["#text"]) {
+                    text += subParts["#text"];
                     let lastPart = parts[parts.length - 1];
                     parts.push( {
                         startTimeMs: lastPart ? lastPart.startTimeMs + lastPart.durationMs : parseTime(meta["@_begin"]),
                         durationMs: 0,
-                        words: p['#text'],
-                        isBackground: false
+                        words: subParts['#text'],
+                        isBackground
                     });
-                } else if (p.span) {
-                    let spanText = subParts.span![0]["#text"]!;
+                } else if (subParts.span) {
+                    let spanText = subParts.span[0]["#text"]!;
                     let startTimeMs = parseTime(subParts[":@"]["@_begin"]);
                     let endTimeMs = parseTime(subParts[":@"]["@_end"]);
 
