@@ -18,7 +18,7 @@ const themes: Theme[] = [
   {
     name: "Default",
     author: "BetterLyrics",
-    path: "Default.css"
+    path: "Default.css",
   },
   {
     name: "Spotlight",
