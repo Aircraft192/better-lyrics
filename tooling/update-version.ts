@@ -22,11 +22,16 @@ try {
     throw new Error("Version not found in package.json");
   }
 
+  const semverVersion = version.match(/^(\d+\.\d+\.\d+)/)?.[0];
+  if (!semverVersion) {
+    throw new Error(`Invalid SemVer version: ${version}`);
+  }
+
   console.log(`Bumping version to ${version}`);
 
   // Update manifest.json
   const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
-  manifest.version = version;
+  manifest.version = semverVersion;
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 
   // Update src/options/options.html
