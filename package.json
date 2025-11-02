@@ -23,7 +23,8 @@
         "build": "extension build --zip --browser all --polyfill",
         "preview": "extension preview --polyfill",
         "lint": "npx @biomejs/biome lint --write . && npx @biomejs/biome format --write .",
-        "update-version": "tsx dev-scripts/update-version.ts"
+        "update-version": "tsx dev-scripts/update-version.ts",
+        "typecheck": "tsc --noEmit"
     },
     "repository": {
         "type": "git",
