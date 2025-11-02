@@ -504,9 +504,6 @@ const saveToStorageWithFallback = async (
     // Always handle theme name in sync storage (small data)
     if (!isTheme && isUserTyping && !isCustomTheme) {
       await chrome.storage.sync.remove("themeName");
-      if (themeChoices) {
-        themeChoices.setChoiceByValue("");
-      }
       currentThemeName = null;
     }
 
@@ -538,9 +535,6 @@ function saveToStorage(isTheme = false) {
   if (!isTheme && isUserTyping && !isCustomTheme) {
     // Only remove theme selection if it's not a theme save and the user is typing
     chrome.storage.sync.remove("themeName");
-    if (themeChoices) {
-      themeChoices.setChoiceByValue("");
-    }
     currentThemeName = null;
   }
 
@@ -1025,9 +1019,6 @@ document.getElementById("file-import-btn")!.addEventListener("click", () => {
       .then(css => {
         editor.setState(createEditorState(css as string));
 
-        if (themeChoices) {
-          themeChoices.setChoiceByValue("");
-        }
         currentThemeName = null;
         chrome.storage.sync.remove("themeName");
         hideThemeName();
