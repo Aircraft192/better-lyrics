@@ -1,12 +1,12 @@
-import type { Lyric, LyricPart, LyricSourceResult, ProviderParameters } from "../shared";
 import * as Constants from "@constants";
-import { type X2jOptions, XMLParser } from "fast-xml-parser";
 import type {
-  SpanElement,
   ParagraphElementOrBackground,
+  SpanElement,
   TtmlRoot,
 } from "@modules/lyrics/providers/blyrics/blyrics-types";
 import { parseTime } from "@modules/lyrics/providers/lrcUtils";
+import type { Lyric, LyricPart, LyricSourceResult, ProviderParameters } from "@modules/lyrics/providers/shared";
+import { type X2jOptions, XMLParser } from "fast-xml-parser";
 
 function parseLyricPart(p: ParagraphElementOrBackground[], beginTime: number, ignoreSpanSpace = false) {
   let text = "";

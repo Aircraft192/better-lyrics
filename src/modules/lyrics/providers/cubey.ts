@@ -72,7 +72,7 @@ export type CubeyLyricSourceResult = LyricSourceResult & {
   song: string;
 };
 
-import * as Utils from "../../../core/utils";
+import * as Utils from "@core/utils";
 import { lrcFixers, parseLRC, parsePlainLyrics } from "./lrcUtils";
 
 /**
